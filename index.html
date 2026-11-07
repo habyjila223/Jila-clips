@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JILA CLIPS</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#090d18;color:white;
+ font-family:Arial,sans-serif;
+}
+header{
+ padding:22px 18px;background:#111827;
+ border-bottom:1px solid #263247;
+}
+.logo{font-size:27px;font-weight:bold;color:#38bdf8}
+.logo span{color:white}
+header p{color:#94a3b8;font-size:13px}
+main{padding:20px;max-width:650px;margin:auto}
+h2{font-size:25px}
+.sub{color:#94a3b8;font-size:14px}
+.card{
+ background:#131c2c;border:1px solid #29364b;
+ padding:19px;border-radius:14px;margin-top:20px;
+}
+label{display:block;margin:16px 0 8px;font-size:14px}
+input,select{
+ width:100%;padding:14px;border-radius:9px;
+ background:#090f1d;color:white;
+ border:1px solid #37465c;font-size:15px;
+}
+.modes{display:flex;gap:10px;margin-top:12px}
+.mode{
+ flex:1;padding:14px 5px;border-radius:9px;
+ background:#202d40;border:1px solid #40516a;
+ color:white;font-weight:bold;
+}
+.mode.active{border:2px solid #38bdf8;color:#38bdf8}
+button{cursor:pointer}
+.mainbtn{
+ width:100%;padding:15px;border:0;border-radius:9px;
+ background:#0284c7;color:white;font-size:16px;
+ font-weight:bold;margin-top:20px;
+}
+.mainbtn:disabled{opacity:.6}
+.note{color:#94a3b8;font-size:12px;line-height:1.6}
+.result{
+ padding:13px;background:#0c1422;
+ border-radius:9px;margin-top:12px;
+ border:1px solid #29364b;
+}
+footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">JILA <span>CLIPS</span></div>
+ <p>Turn long videos into powerful short clips.</p>
+</header>
+
+<main>
+ <h2>Create your clips 🎬</h2>
+ <p class="sub">Your AI-powered video clipping workspace.</p>
+
+ <section class="card">
+  <h3>1. Add your YouTube video</h3>
+  <label for="youtube">YouTube video URL</label>
+  <input id="youtube" type="url"
+   placeholder="Paste your YouTube link here">
+
+  <h3 style="margin-top:25px">2. Choose clipping mode</h3>
+  <div class="modes">
+   <button class="mode active" id="auto" onclick="choose('auto')">🤖 Automatic AI</button>
+   <button class="mode" id="manual" onclick="choose('manual')">✂️ Manual</button>
+  </div>
+
+  <label for="length">Clip length</label>
+  <select id="length">
+   <option value="30">30 seconds</option>
+   <option value="45">45 seconds</option>
+   <option value="60" selected>60 seconds</option>
+   <option value="90">90 seconds</option>
+  </select>
+
+  <div id="manualOptions" style="display:none">
+   <label for="start">Start time (seconds)</label>
+   <input id="start" type="number" min="0" value="0">
+   <label for="end">End time (seconds)</label>
+   <input id="end" type="number" min="1" value="60">
+  </div>
+
+  <button class="mainbtn" id="create" onclick="createClips()">
+   CREATE MY CLIPS
+  </button>
+
+  <p class="note">
+   This is the first dashboard version. Actual AI video analysis,
+   clipping, and downloads will be connected in the next development stages.
+  </p>
+ </section>
+
+ <section class="card">
+  <h3>📁 Your workspace</h3>
+  <p class="sub">Your generated clips will appear here.</p>
+  <div id="results">
+   <p class="note">No clips yet. Add a video to get started.</p>
+  </div>
+ </section>
+</main>
+
+<footer>JILA CLIPS © 2026 · Create. Clip. Share.</footer>
+
+<script>
+let mode="auto";
+
+function choose(value){
+ mode=value;
+ document.getElementById("auto").classList.toggle("active",value==="auto");
+ document.getElementById("manual").classList.toggle("active",value==="manual");
+ document.getElementById("manualOptions").style.display=
+ value==="manual"?"block":"none";
+}
+
+function createClips(){
+ const url=document.getElementById("youtube").value.trim();
+ const button=document.getElementById("create");
+
+ if(!url){
+  alert("Please paste a YouTube video link first.");
+  return;
+ }
+
+ if(!/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(url)){
+  alert("Please enter a valid YouTube video URL.");
+  return;
+ }
+
+ if(mode==="manual"){
+  const start=Number(document.getElementById("start").value);
+  const end=Number(document.getElementById("end").value);
+  if(start<0 || end<=start){
+   alert("Please enter valid start and end times.");
+   return;
+  }
+ }
+
+ button.textContent="REQUEST RECEIVED";
+ button.disabled=true;
+
+ document.getElementById("results").innerHTML=
+ '<div class="result"><strong>Video submitted!</strong>'+
+ '<p class="note">Your '+mode+' clipping request has been received by this demo dashboard. The video processing engine has not been connected yet.</p></div>';
+
+ setTimeout(()=>{
+  button.textContent="CREATE MY CLIPS";
+  button.disabled=false;
+ },2000);
+}
+</script>
+</body>
+</html>
