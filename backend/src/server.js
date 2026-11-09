@@ -1,3 +1,4 @@
+
 import express from "express";
 import multer from "multer";
 import ffmpeg from "ffmpeg-static";
@@ -9,6 +10,28 @@ import { mkdir, unlink } from "node:fs/promises";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Allow the JILA CLIPS website to communicate with the backend
+const allowedOrigin = "https://habyjila223.github.io";
+
+app.use((req, res, next) => {
+  if (req.headers.origin === allowedOrigin) {
+    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  }
+
+  res.setHeader("Vary", "Origin");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, X-Rights-Confirmed"
+  );
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
 
 await mkdir("uploads", { recursive: true });
 await mkdir("outputs", { recursive: true });
@@ -27,6 +50,7 @@ const upload = multer({
       "video/webm",
       "video/x-matroska"
     ];
+
     cb(null, allowed.includes(file.mimetype));
   }
 });
@@ -49,6 +73,7 @@ function execute(command, args) {
   });
 }
 
+// Health check
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
@@ -57,9 +82,11 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// YouTube link validation
 app.post("/api/youtube/validate", (req, res) => {
   try {
     const url = new URL(req.body.url);
+
     const valid = [
       "youtube.com",
       "www.youtube.com",
@@ -78,16 +105,20 @@ app.post("/api/youtube/validate", (req, res) => {
   }
 });
 
+// Upload video
 app.post("/api/jobs/upload", (req, res, next) => {
   if (req.get("X-Rights-Confirmed") !== "true") {
     return res.status(400).json({
       error: "Confirm you own this video or have permission to edit it."
     });
   }
+
   next();
 }, upload.single("video"), async (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: "Please upload a video." });
+    return res.status(400).json({
+      error: "Please upload a video."
+    });
   }
 
   try {
@@ -113,15 +144,21 @@ app.post("/api/jobs/upload", (req, res, next) => {
     });
   } catch {
     await unlink(req.file.path).catch(() => {});
-    res.status(400).json({ error: "Could not read this video." });
+
+    res.status(400).json({
+      error: "Could not read this video."
+    });
   }
 });
 
+// Create video clips
 app.post("/api/jobs/:id/clip", async (req, res) => {
   const job = jobs.get(req.params.id);
 
   if (!job) {
-    return res.status(404).json({ error: "Video job not found." });
+    return res.status(404).json({
+      error: "Video job not found."
+    });
   }
 
   const start = Number(req.body.startSeconds ?? 0);
@@ -177,24 +214,30 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
       download: `/api/jobs/${job.id}/download`,
       format: ratio
     });
+
   } catch {
     job.status = "failed";
+
     res.status(500).json({
       error: "Video processing failed."
     });
   }
 });
 
+// Download completed clip
 app.get("/api/jobs/:id/download", (req, res) => {
   const job = jobs.get(req.params.id);
 
   if (!job || job.status !== "completed") {
-    return res.status(404).json({ error: "Clip not ready." });
+    return res.status(404).json({
+      error: "Clip not ready."
+    });
   }
 
   res.download(job.output);
 });
 
+// Start server
 app.listen(PORT, () => {
   console.log(`JILA CLIPS server running on port ${PORT}`);
 });
