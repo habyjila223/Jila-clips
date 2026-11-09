@@ -7,50 +7,26 @@
 <title>JILA CLIPS</title>
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;background:#090d18;color:white;
- font-family:Arial,sans-serif;
-}
-header{
- padding:22px 18px;background:#111827;
- border-bottom:1px solid #263247;
-}
+body{margin:0;background:#090d18;color:white;font-family:Arial,sans-serif}
+header{padding:22px 18px;background:#111827;border-bottom:1px solid #263247}
 .logo{font-size:27px;font-weight:bold;color:#38bdf8}
 .logo span{color:white}
 header p{color:#94a3b8;font-size:13px}
 main{padding:20px;max-width:650px;margin:auto}
 h2{font-size:25px}
 .sub{color:#94a3b8;font-size:14px}
-.card{
- background:#131c2c;border:1px solid #29364b;
- padding:19px;border-radius:14px;margin-top:20px;
-}
+.card{background:#131c2c;border:1px solid #29364b;padding:19px;border-radius:14px;margin-top:20px}
 label{display:block;margin:16px 0 8px;font-size:14px}
-input,select{
- width:100%;padding:14px;border-radius:9px;
- background:#090f1d;color:white;
- border:1px solid #37465c;font-size:15px;
-}
+input,select{width:100%;padding:14px;border-radius:9px;background:#090f1d;color:white;border:1px solid #37465c;font-size:15px}
+input[type=checkbox]{width:auto}
 .modes{display:flex;gap:10px;margin-top:12px}
-.mode{
- flex:1;padding:14px 5px;border-radius:9px;
- background:#202d40;border:1px solid #40516a;
- color:white;font-weight:bold;
-}
+.mode{flex:1;padding:14px 5px;border-radius:9px;background:#202d40;border:1px solid #40516a;color:white;font-weight:bold}
 .mode.active{border:2px solid #38bdf8;color:#38bdf8}
 button{cursor:pointer}
-.mainbtn{
- width:100%;padding:15px;border:0;border-radius:9px;
- background:#0284c7;color:white;font-size:16px;
- font-weight:bold;margin-top:20px;
-}
+.mainbtn{width:100%;padding:15px;border:0;border-radius:9px;background:#0284c7;color:white;font-size:16px;font-weight:bold;margin-top:20px}
 .mainbtn:disabled{opacity:.6}
 .note{color:#94a3b8;font-size:12px;line-height:1.6}
-.result{
- padding:13px;background:#0c1422;
- border-radius:9px;margin-top:12px;
- border:1px solid #29364b;
-}
+.result{padding:13px;background:#0c1422;border-radius:9px;margin-top:12px;border:1px solid #29364b;overflow-wrap:anywhere}
 footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
 </style>
 </head>
@@ -59,105 +35,154 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
  <div class="logo">JILA <span>CLIPS</span></div>
  <p>Turn long videos into powerful short clips.</p>
 </header>
-
 <main>
  <h2>Create your clips 🎬</h2>
- <p class="sub">Your AI-powered video clipping workspace.</p>
+ <p class="sub">Your video clipping workspace.</p>
 
  <section class="card">
-  <h3>1. Add your YouTube video</h3>
-  <label for="youtube">YouTube video URL</label>
-  <input id="youtube" type="url"
-   placeholder="Paste your YouTube link here">
+  <h3>1. Add your video</h3>
+  <label for="youtube">YouTube video URL (validation only)</label>
+  <input id="youtube" type="url" placeholder="Paste your YouTube link here">
+  <p class="note">YouTube links are not downloaded. Upload a video you own or have permission to edit.</p>
+
+  <label for="videoFile">Or upload your video</label>
+  <input id="videoFile" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska">
+
+  <label>
+   <input id="rightsConfirmed" type="checkbox">
+   I own this video or have permission to edit it.
+  </label>
 
   <h3 style="margin-top:25px">2. Choose clipping mode</h3>
   <div class="modes">
-   <button class="mode active" id="auto" onclick="choose('auto')">🤖 Automatic AI</button>
-   <button class="mode" id="manual" onclick="choose('manual')">✂️ Manual</button>
+   <button type="button" class="mode" id="auto" onclick="choose('auto')">🤖 Automatic AI</button>
+   <button type="button" class="mode active" id="manual" onclick="choose('manual')">✂️ Manual</button>
   </div>
+  <p class="note" id="modeNote">Manual clipping is available. Automatic AI highlight detection is coming soon.</p>
 
-  <label for="length">Clip length</label>
-  <select id="length">
-   <option value="30">30 seconds</option>
-   <option value="45">45 seconds</option>
-   <option value="60" selected>60 seconds</option>
-   <option value="90">90 seconds</option>
-  </select>
-
-  <div id="manualOptions" style="display:none">
+  <div id="manualOptions">
    <label for="start">Start time (seconds)</label>
    <input id="start" type="number" min="0" value="0">
    <label for="end">End time (seconds)</label>
-   <input id="end" type="number" min="1" value="60">
+   <input id="end" type="number" min="1" value="30">
   </div>
 
-  <button class="mainbtn" id="create" onclick="createClips()">
-   CREATE MY CLIPS
-  </button>
+  <label for="length">Clip length (used for automatic mode later)</label>
+  <select id="length">
+   <option value="30">30 seconds</option>
+   <option value="45">45 seconds</option>
+   <option value="60">60 seconds</option>
+  </select>
 
-  <p class="note">
-   This is the first dashboard version. Actual AI video analysis,
-   clipping, and downloads will be connected in the next development stages.
-  </p>
+  <h3 style="margin-top:25px">3. Choose video format</h3>
+  <label for="ratio">Social media format</label>
+  <select id="ratio">
+   <option value="9:16">9:16 — TikTok, Reels & Shorts</option>
+   <option value="16:9">16:9 — YouTube & Facebook</option>
+   <option value="1:1">1:1 — Square social posts</option>
+   <option value="4:5">4:5 — Instagram & Facebook feed</option>
+  </select>
+
+  <label>
+   <input id="captions" type="checkbox" disabled>
+   Automatic captions (coming soon)
+  </label>
+
+  <button class="mainbtn" id="create" onclick="createClips()">CREATE MY CLIP</button>
+  <p class="note">Current version: direct video upload and manual clipping. AI highlights and automatic captions are not yet implemented.</p>
  </section>
 
  <section class="card">
   <h3>📁 Your workspace</h3>
-  <p class="sub">Your generated clips will appear here.</p>
-  <div id="results">
-   <p class="note">No clips yet. Add a video to get started.</p>
-  </div>
+  <p class="sub">Your processing results will appear here.</p>
+  <div id="results"><p class="note">No clips yet. Upload a video to get started.</p></div>
  </section>
 </main>
-
 <footer>JILA CLIPS © 2026 · Create. Clip. Share.</footer>
 
 <script>
-let mode="auto";
+const API="https://jila-clips.onrender.com";
+let mode="manual";
 
 function choose(value){
  mode=value;
  document.getElementById("auto").classList.toggle("active",value==="auto");
  document.getElementById("manual").classList.toggle("active",value==="manual");
- document.getElementById("manualOptions").style.display=
- value==="manual"?"block":"none";
+ document.getElementById("manualOptions").style.display=value==="manual"?"block":"none";
+ document.getElementById("modeNote").textContent=
+ value==="auto"?"Automatic AI highlight detection is coming soon. Choose Manual to create a clip now.":"Manual clipping is available.";
 }
 
-function createClips(){
- const url=document.getElementById("youtube").value.trim();
+async function createClips(){
  const button=document.getElementById("create");
+ const file=document.getElementById("videoFile").files[0];
+ const results=document.getElementById("results");
 
- if(!url){
-  alert("Please paste a YouTube video link first.");
+ if(mode==="auto"){
+  alert("Automatic AI highlight detection is not available yet. Please choose Manual.");
+  return;
+ }
+ if(!file){
+  alert("Please choose a video file to upload.");
+  return;
+ }
+ if(!document.getElementById("rightsConfirmed").checked){
+  alert("Please confirm that you own this video or have permission to edit it.");
   return;
  }
 
- if(!/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//i.test(url)){
-  alert("Please enter a valid YouTube video URL.");
+ const start=Number(document.getElementById("start").value);
+ const end=Number(document.getElementById("end").value);
+ if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start||end-start>60){
+  alert("Enter valid start and end times. Clips must be no longer than 60 seconds.");
   return;
  }
 
- if(mode==="manual"){
-  const start=Number(document.getElementById("start").value);
-  const end=Number(document.getElementById("end").value);
-  if(start<0 || end<=start){
-   alert("Please enter valid start and end times.");
-   return;
-  }
- }
-
- button.textContent="REQUEST RECEIVED";
  button.disabled=true;
+ button.textContent="UPLOADING VIDEO...";
+ results.textContent="Uploading your video. Please wait...";
 
- document.getElementById("results").innerHTML=
- '<div class="result"><strong>Video submitted!</strong>'+
- '<p class="note">Your '+mode+' clipping request has been received by this demo dashboard. The video processing engine has not been connected yet.</p></div>';
+ try{
+  const form=new FormData();
+  form.append("video",file);
 
- setTimeout(()=>{
-  button.textContent="CREATE MY CLIPS";
+  const uploadResponse=await fetch(API+"/api/jobs/upload",{
+   method:"POST",
+   headers:{"X-Rights-Confirmed":"true"},
+   body:form
+  });
+  const uploaded=await uploadResponse.json();
+  if(!uploadResponse.ok) throw new Error(uploaded.error||"Video upload failed.");
+
+  button.textContent="PROCESSING CLIP...";
+  results.textContent="Video uploaded. Creating your clip...";
+
+  const clipResponse=await fetch(API+"/api/jobs/"+encodeURIComponent(uploaded.id)+"/clip",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+    startSeconds:start,
+    durationSeconds:end-start,
+    ratio:document.getElementById("ratio").value
+   })
+  });
+  const clip=await clipResponse.json();
+  if(!clipResponse.ok) throw new Error(clip.error||"Clip processing failed.");
+
+  const downloadURL=API+clip.download;
+  results.innerHTML=
+   '<div class="result"><strong>Your clip is ready!</strong>'+
+   '<p class="note">Format: '+clip.format+'</p>'+
+   '<a href="'+downloadURL+'" style="color:#38bdf8" target="_blank" rel="noopener">Download your clip</a></div>';
+ }catch(error){
+  results.innerHTML='<div class="result"><strong>Could not complete the request.</strong><p class="note"></p></div>';
+  results.querySelector(".note").textContent=error.message;
+ }finally{
   button.disabled=false;
- },2000);
+  button.textContent="CREATE MY CLIP";
+ }
 }
+choose("manual");
 </script>
 </body>
 </html>
