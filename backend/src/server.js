@@ -11,16 +11,18 @@ import { mkdir, unlink } from "node:fs/promises";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Allow the JILA CLIPS website to communicate with the backend
-const allowedOrigin = "https://habyjila223.github.io";
+await mkdir("uploads", { recursive: true });
+await mkdir("outputs", { recursive: true });
 
 app.use((req, res, next) => {
-  if (req.headers.origin === allowedOrigin) {
-    res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
-  }
-
-  res.setHeader("Vary", "Origin");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://habyjila223.github.io"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS"
+  );
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type, X-Rights-Confirmed"
@@ -33,16 +35,16 @@ app.use((req, res, next) => {
   next();
 });
 
-await mkdir("uploads", { recursive: true });
-await mkdir("outputs", { recursive: true });
-
 app.use(express.json());
 
 const jobs = new Map();
+let isProcessing = false;
 
 const upload = multer({
   dest: "uploads/",
-  limits: { fileSize: 500 * 1024 * 1024 },
+  limits: {
+    fileSize: 100 * 1024 * 1024
+  },
   fileFilter(req, file, cb) {
     const allowed = [
       "video/mp4",
@@ -51,7 +53,12 @@ const upload = multer({
       "video/x-matroska"
     ];
 
-    cb(null, allowed.includes(file.mimetype));
+    cb(
+      allowed.includes(file.mimetype)
+        ? null
+        : new Error("Unsupported video format."),
+      allowed.includes(file.mimetype)
+    );
   }
 });
 
@@ -67,22 +74,23 @@ function execute(command, args) {
     process.on("error", reject);
 
     process.on("close", code => {
-      if (code === 0) resolve();
-      else reject(new Error(errors.slice(-2000)));
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(errors.slice(-2000)));
+      }
     });
   });
 }
 
-// Health check
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
     service: "JILA CLIPS",
-    version: "0.2.0"
+    version: "0.3.0"
   });
 });
 
-// YouTube link validation
 app.post("/api/youtube/validate", (req, res) => {
   try {
     const url = new URL(req.body.url);
@@ -101,57 +109,63 @@ app.post("/api/youtube/validate", (req, res) => {
         : "Invalid YouTube link."
     });
   } catch {
-    res.status(400).json({ valid: false });
-  }
-});
-
-// Upload video
-app.post("/api/jobs/upload", (req, res, next) => {
-  if (req.get("X-Rights-Confirmed") !== "true") {
-    return res.status(400).json({
-      error: "Confirm you own this video or have permission to edit it."
-    });
-  }
-
-  next();
-}, upload.single("video"), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({
-      error: "Please upload a video."
-    });
-  }
-
-  try {
-    await execute(ffprobe.path, [
-      "-v", "error",
-      "-show_entries", "format=duration",
-      "-of", "default=noprint_wrappers=1:nokey=1",
-      req.file.path
-    ]);
-
-    const id = randomUUID();
-
-    jobs.set(id, {
-      id,
-      input: req.file.path,
-      status: "uploaded"
-    });
-
-    res.status(201).json({
-      id,
-      status: "uploaded",
-      message: "Video received successfully."
-    });
-  } catch {
-    await unlink(req.file.path).catch(() => {});
-
     res.status(400).json({
-      error: "Could not read this video."
+      valid: false,
+      message: "Invalid URL."
     });
   }
 });
 
-// Create video clips
+app.post(
+  "/api/jobs/upload",
+  (req, res, next) => {
+    if (req.get("X-Rights-Confirmed") !== "true") {
+      return res.status(400).json({
+        error: "Confirm you own this video or have permission to edit it."
+      });
+    }
+
+    next();
+  },
+  upload.single("video"),
+  async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({
+        error: "Please upload a video."
+      });
+    }
+
+    try {
+      await execute(ffprobe.path, [
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
+        req.file.path
+      ]);
+
+      const id = randomUUID();
+
+      jobs.set(id, {
+        id,
+        input: req.file.path,
+        status: "uploaded"
+      });
+
+      res.status(201).json({
+        id,
+        status: "uploaded",
+        message: "Video received successfully."
+      });
+    } catch {
+      await unlink(req.file.path).catch(() => {});
+
+      res.status(400).json({
+        error: "Could not read this video."
+      });
+    }
+  }
+);
+
 app.post("/api/jobs/:id/clip", async (req, res) => {
   const job = jobs.get(req.params.id);
 
@@ -166,10 +180,10 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
   const ratio = req.body.ratio || "9:16";
 
   const formats = {
-    "9:16": [1080, 1920],
-    "16:9": [1920, 1080],
-    "1:1": [1080, 1080],
-    "4:5": [1080, 1350]
+    "9:16": [720, 1280],
+    "16:9": [1280, 720],
+    "1:1": [720, 720],
+    "4:5": [720, 900]
   };
 
   if (
@@ -185,22 +199,33 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
     });
   }
 
+  if (isProcessing) {
+    return res.status(409).json({
+      error: "Another video is processing. Please try again shortly."
+    });
+  }
+
   const [width, height] = formats[ratio];
   const output = path.join("outputs", `${job.id}.mp4`);
 
-  try {
-    job.status = "processing";
+  isProcessing = true;
+  job.status = "processing";
 
+  try {
     await execute(ffmpeg, [
       "-y",
+      "-threads", "1",
       "-ss", String(start),
       "-i", job.input,
       "-t", String(duration),
       "-vf",
       `scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height}`,
       "-c:v", "libx264",
-      "-preset", "veryfast",
+      "-preset", "ultrafast",
+      "-crf", "28",
+      "-threads", "1",
       "-c:a", "aac",
+      "-b:a", "96k",
       "-movflags", "+faststart",
       output
     ]);
@@ -214,17 +239,19 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
       download: `/api/jobs/${job.id}/download`,
       format: ratio
     });
+  } catch (error) {
+    console.error("Video processing failed:", error.message);
 
-  } catch {
     job.status = "failed";
 
     res.status(500).json({
-      error: "Video processing failed."
+      error: "Video processing failed. Please try a smaller video."
     });
+  } finally {
+    isProcessing = false;
   }
 });
 
-// Download completed clip
 app.get("/api/jobs/:id/download", (req, res) => {
   const job = jobs.get(req.params.id);
 
@@ -237,7 +264,14 @@ app.get("/api/jobs/:id/download", (req, res) => {
   res.download(job.output);
 });
 
-// Start server
+app.use((error, req, res, next) => {
+  console.error(error.message);
+
+  res.status(400).json({
+    error: error.message || "Something went wrong."
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`JILA CLIPS server running on port ${PORT}`);
 });
