@@ -6,7 +6,7 @@ import ffprobe from "ffprobe-static";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { mkdir, unlink } from "node:fs/promises";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -83,11 +83,25 @@ function execute(command, args) {
   });
 }
 
+function srtTime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  const ms = Math.round((seconds - Math.floor(seconds)) * 1000);
+
+  return (
+    String(hours).padStart(2, "0") + ":" +
+    String(minutes).padStart(2, "0") + ":" +
+    String(secs).padStart(2, "0") + "," +
+    String(ms).padStart(3, "0")
+  );
+}
+
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
     service: "JILA CLIPS",
-    version: "0.3.0"
+    version: "0.4.0"
   });
 });
 
@@ -124,7 +138,6 @@ app.post(
         error: "Confirm you own this video or have permission to edit it."
       });
     }
-
     next();
   },
   upload.single("video"),
@@ -178,6 +191,7 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
   const start = Number(req.body.startSeconds ?? 0);
   const duration = Number(req.body.durationSeconds ?? 15);
   const ratio = req.body.ratio || "9:16";
+  const captionText = String(req.body.captionText || "").trim();
 
   const formats = {
     "9:16": [720, 1280],
@@ -199,6 +213,12 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
     });
   }
 
+  if (captionText.length > 2000) {
+    return res.status(400).json({
+      error: "Captions must be 2,000 characters or fewer."
+    });
+  }
+
   if (isProcessing) {
     return res.status(409).json({
       error: "Another video is processing. Please try again shortly."
@@ -207,19 +227,35 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
 
   const [width, height] = formats[ratio];
   const output = path.join("outputs", `${job.id}.mp4`);
+  const captionFile = path.resolve("uploads", `${job.id}.srt`);
 
   isProcessing = true;
   job.status = "processing";
 
   try {
+    const filters = [
+      `scale=${width}:${height}:force_original_aspect_ratio=increase`,
+      `crop=${width}:${height}`
+    ];
+
+    if (captionText) {
+      const subtitleContent =
+        "1\n" +
+        "00:00:00,000 --> " + srtTime(duration) + "\n" +
+        captionText.replace(/\r/g, "") + "\n";
+
+      await writeFile(captionFile, subtitleContent, "utf8");
+
+      filters.push(`subtitles=filename='${captionFile}'`);
+    }
+
     await execute(ffmpeg, [
       "-y",
       "-threads", "1",
       "-ss", String(start),
       "-i", job.input,
       "-t", String(duration),
-      "-vf",
-      `scale=${width}:${height}:force_original_aspect_ratio=increase,crop=${width}:${height}`,
+      "-vf", filters.join(","),
       "-c:v", "libx264",
       "-preset", "ultrafast",
       "-crf", "28",
@@ -237,17 +273,21 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
       id: job.id,
       status: "completed",
       download: `/api/jobs/${job.id}/download`,
-      format: ratio
+      format: ratio,
+      captionsBurnedIn: Boolean(captionText)
     });
+
   } catch (error) {
     console.error("Video processing failed:", error.message);
 
     job.status = "failed";
 
     res.status(500).json({
-      error: "Video processing failed. Please try a smaller video."
+      error: "Video processing failed. Please try a smaller video or check subtitle support."
     });
+
   } finally {
+    await unlink(captionFile).catch(() => {});
     isProcessing = false;
   }
 });
