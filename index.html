@@ -37,7 +37,6 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
 </style>
 </head>
 <body>
-
 <header>
  <div class="logo">JILA <span>CLIPS</span></div>
  <p>Turn long videos into powerful short clips.</p>
@@ -52,7 +51,6 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
 
   <label for="youtube">YouTube video URL (validation only)</label>
   <input id="youtube" type="url" placeholder="Paste your YouTube link here">
-
   <p class="note">YouTube links are not downloaded. Upload a video you own or have permission to edit.</p>
 
   <label for="videoFile">Or upload your video</label>
@@ -64,7 +62,6 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
   </label>
 
   <h3 style="margin-top:25px">2. Choose clipping mode</h3>
-
   <div class="modes">
    <button type="button" class="mode" id="auto" onclick="choose('auto')">🤖 Automatic AI</button>
    <button type="button" class="mode active" id="manual" onclick="choose('manual')">✂️ Manual</button>
@@ -75,7 +72,6 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
   <div id="manualOptions">
    <label for="start">Start time (seconds)</label>
    <input id="start" type="number" min="0" value="0">
-
    <label for="end">End time (seconds)</label>
    <input id="end" type="number" min="1" value="30">
   </div>
@@ -88,7 +84,6 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
   </select>
 
   <h3 style="margin-top:25px">3. Choose video format</h3>
-
   <label for="ratio">Social media format</label>
   <select id="ratio">
    <option value="9:16">9:16 — TikTok, Reels & Shorts</option>
@@ -98,18 +93,16 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
   </select>
 
   <h3 style="margin-top:25px">4. Add your captions ✍️</h3>
-
   <label for="captionText">Type your subtitle text</label>
-  <textarea id="captionText" placeholder="Type what you want viewers to read..."></textarea>
+  <textarea id="captionText" maxlength="2000" placeholder="Type what you want viewers to read..."></textarea>
 
   <p class="note">
-   Your text will be saved as an SRT subtitle file that you can use with your video.
-   Automatic speech recognition and captions embedded directly into videos are coming later.
+   Your captions will be burned directly into the video and also saved as a separate SRT subtitle file.
+   Automatic speech recognition is coming later.
   </p>
 
   <button class="mainbtn" id="create" onclick="createClips()">CREATE MY CLIP</button>
-
-  <p class="note">Current features: video upload, manual clipping, four video formats and downloadable subtitle files.</p>
+  <p class="note">Current features: video upload, manual clipping, four video formats, burned-in captions and downloadable subtitle files.</p>
  </section>
 
  <section class="card">
@@ -154,7 +147,6 @@ function srtTime(seconds){
 
 function createSubtitleFile(text,duration){
  const cleanText=text.trim().replace(/\r/g,"");
-
  const content=
  "1\n"+
  srtTime(0)+" --> "+srtTime(duration)+"\n"+
@@ -199,6 +191,11 @@ async function createClips(){
  const captionText=document.getElementById("captionText").value;
  const duration=end-start;
 
+ if(captionText.trim().length>2000){
+  alert("Captions must be 2,000 characters or fewer.");
+  return;
+ }
+
  button.disabled=true;
  button.textContent="UPLOADING VIDEO...";
  results.textContent="Uploading your video. Please wait...";
@@ -220,7 +217,7 @@ async function createClips(){
   }
 
   button.textContent="PROCESSING CLIP...";
-  results.textContent="Video uploaded. Creating your clip...";
+  results.textContent="Video uploaded. Creating your clip and burning in captions...";
 
   const clipResponse=await fetch(
    API+"/api/jobs/"+encodeURIComponent(uploaded.id)+"/clip",
@@ -230,7 +227,8 @@ async function createClips(){
     body:JSON.stringify({
      startSeconds:start,
      durationSeconds:duration,
-     ratio:document.getElementById("ratio").value
+     ratio:document.getElementById("ratio").value,
+     captionText:captionText
     })
    }
   );
@@ -246,18 +244,22 @@ async function createClips(){
   let resultHTML=
    '<div class="result">'+
    '<strong>Your clip is ready!</strong>'+
-   '<p class="note">Format: '+clip.format+'</p>'+
+   '<p class="note">Format: '+clip.format+'</p>';
+
+  if(clip.captionsBurnedIn){
+   resultHTML+='<p class="note">✅ Captions burned directly into your video!</p>';
+  }else{
+   resultHTML+='<p class="note">No captions were burned into this video.</p>';
+  }
+
+  resultHTML+=
    '<a href="'+downloadURL+'" target="_blank" rel="noopener">Download your video</a>';
 
   if(captionText.trim()){
    const subtitleURL=createSubtitleFile(captionText,duration);
-
    resultHTML+=
     '<br><a href="'+subtitleURL+'" download="JILA-CLIPS-Captions.srt">'+
     'Download your captions (.SRT)</a>';
-  }else{
-   resultHTML+=
-    '<p class="note">No captions were entered. You can add some before creating another clip.</p>';
   }
 
   resultHTML+='</div>';
@@ -266,7 +268,6 @@ async function createClips(){
  }catch(error){
   results.innerHTML=
    '<div class="result"><strong>Could not complete the request.</strong><p class="note"></p></div>';
-
   results.querySelector(".note").textContent=error.message;
 
  }finally{
