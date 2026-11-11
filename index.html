@@ -18,9 +18,9 @@ h2{font-size:25px}
 .card{background:#131c2c;border:1px solid #29364b;padding:19px;border-radius:14px;margin-top:20px}
 label{display:block;margin:16px 0 8px;font-size:14px}
 input,select,textarea{
- width:100%;padding:14px;border-radius:9px;
- background:#090f1d;color:white;border:1px solid #37465c;
- font-size:15px
+width:100%;padding:14px;border-radius:9px;
+background:#090f1d;color:white;border:1px solid #37465c;
+font-size:15px
 }
 textarea{min-height:100px;resize:vertical;font-family:Arial,sans-serif}
 input[type=checkbox]{width:auto}
@@ -38,78 +38,111 @@ footer{text-align:center;padding:30px;color:#64748b;font-size:12px}
 </head>
 <body>
 <header>
- <div class="logo">JILA <span>CLIPS</span></div>
- <p>Turn long videos into powerful short clips.</p>
+<div class="logo">JILA <span>CLIPS</span></div>
+<p>Turn long videos into powerful short clips.</p>
 </header>
 
 <main>
- <h2>Create your clips 🎬</h2>
- <p class="sub">Your video clipping workspace.</p>
+<h2>Create your clips 🎬</h2>
+<p class="sub">Your video clipping workspace.</p>
 
- <section class="card">
-  <h3>1. Add your video</h3>
+<section class="card">
+<h3>1. Add your video</h3>
 
-  <label for="youtube">YouTube video URL (validation only)</label>
-  <input id="youtube" type="url" placeholder="Paste your YouTube link here">
-  <p class="note">YouTube links are not downloaded. Upload a video you own or have permission to edit.</p>
+<label for="youtube">YouTube video URL (validation only)</label>
+<input id="youtube" type="url" placeholder="Paste your YouTube link here">
+<p class="note">YouTube links are not downloaded. Upload a video you own or have permission to edit.</p>
 
-  <label for="videoFile">Or upload your video</label>
-  <input id="videoFile" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska">
+<label for="videoFile">Or upload your video</label>
+<input id="videoFile" type="file" accept="video/mp4,video/quicktime,video/webm,video/x-matroska">
 
-  <label>
-   <input id="rightsConfirmed" type="checkbox">
-   I own this video or have permission to edit it.
-  </label>
+<label>
+<input id="rightsConfirmed" type="checkbox">
+I own this video or have permission to edit it.
+</label>
 
-  <h3 style="margin-top:25px">2. Choose clipping mode</h3>
-  <div class="modes">
-   <button type="button" class="mode" id="auto" onclick="choose('auto')">🤖 Automatic AI</button>
-   <button type="button" class="mode active" id="manual" onclick="choose('manual')">✂️ Manual</button>
-  </div>
+<h3 style="margin-top:25px">2. Choose clipping mode</h3>
+<div class="modes">
+<button type="button" class="mode" id="auto" onclick="choose('auto')">🤖 Automatic AI</button>
+<button type="button" class="mode active" id="manual" onclick="choose('manual')">✂️ Manual</button>
+</div>
 
-  <p class="note" id="modeNote">Manual clipping is available. Automatic AI highlight detection is coming soon.</p>
+<p class="note" id="modeNote">Manual clipping is available. Automatic AI highlight detection is coming soon.</p>
 
-  <div id="manualOptions">
-   <label for="start">Start time (seconds)</label>
-   <input id="start" type="number" min="0" value="0">
-   <label for="end">End time (seconds)</label>
-   <input id="end" type="number" min="1" value="30">
-  </div>
+<div id="manualOptions">
+<label for="start">Start time (seconds)</label>
+<input id="start" type="number" min="0" value="0">
+<label for="end">End time (seconds)</label>
+<input id="end" type="number" min="1" value="30">
+</div>
 
-  <label for="length">Clip length (used for automatic mode later)</label>
-  <select id="length">
-   <option value="30">30 seconds</option>
-   <option value="45">45 seconds</option>
-   <option value="60">60 seconds</option>
-  </select>
+<label for="length">Clip length (used for automatic mode later)</label>
+<select id="length">
+<option value="30">30 seconds</option>
+<option value="45">45 seconds</option>
+<option value="60">60 seconds</option>
+</select>
 
-  <h3 style="margin-top:25px">3. Choose video format</h3>
-  <label for="ratio">Social media format</label>
-  <select id="ratio">
-   <option value="9:16">9:16 — TikTok, Reels & Shorts</option>
-   <option value="16:9">16:9 — YouTube & Facebook</option>
-   <option value="1:1">1:1 — Square social posts</option>
-   <option value="4:5">4:5 — Instagram & Facebook feed</option>
-  </select>
+<h3 style="margin-top:25px">3. Choose video format</h3>
+<label for="ratio">Social media format</label>
+<select id="ratio">
+<option value="9:16">9:16 — TikTok, Reels & Shorts</option>
+<option value="16:9">16:9 — YouTube & Facebook</option>
+<option value="1:1">1:1 — Square social posts</option>
+<option value="4:5">4:5 — Instagram & Facebook feed</option>
+</select>
 
-  <h3 style="margin-top:25px">4. Add your captions ✍️</h3>
-  <label for="captionText">Type your subtitle text</label>
-  <textarea id="captionText" maxlength="2000" placeholder="Type what you want viewers to read..."></textarea>
+<h3 style="margin-top:25px">4. Add your captions ✍️</h3>
+<label for="captionText">Type your subtitle text</label>
+<textarea id="captionText" maxlength="2000" placeholder="Type what you want viewers to read..."></textarea>
 
-  <p class="note">
-   Your captions will be burned directly into the video and also saved as a separate SRT subtitle file.
-   Automatic speech recognition is coming later.
-  </p>
+<h3 style="margin-top:25px">5. Customize your captions 🎨</h3>
 
-  <button class="mainbtn" id="create" onclick="createClips()">CREATE MY CLIP</button>
-  <p class="note">Current features: video upload, manual clipping, four video formats, burned-in captions and downloadable subtitle files.</p>
- </section>
+<label for="captionFont">Caption font</label>
+<select id="captionFont">
+<option value="arial">Arial</option>
+<option value="dejavu">DejaVu Sans</option>
+<option value="liberation">Liberation Sans</option>
+<option value="serif">DejaVu Serif</option>
+</select>
 
- <section class="card">
-  <h3>📁 Your workspace</h3>
-  <p class="sub">Your processing results will appear here.</p>
-  <div id="results"><p class="note">No clips yet. Upload a video to get started.</p></div>
- </section>
+<label for="captionColor">Caption colour</label>
+<select id="captionColor">
+<option value="white">White</option>
+<option value="yellow">Yellow</option>
+<option value="red">Red</option>
+<option value="blue">Blue</option>
+<option value="green">Green</option>
+</select>
+
+<label for="captionSize">Caption size</label>
+<select id="captionSize">
+<option value="small">Small</option>
+<option value="medium" selected>Medium</option>
+<option value="large">Large</option>
+</select>
+
+<label for="captionPosition">Caption position</label>
+<select id="captionPosition">
+<option value="top">Top</option>
+<option value="middle">Middle</option>
+<option value="bottom" selected>Bottom</option>
+</select>
+
+<p class="note">
+Captions will be burned into the video and also saved as a separate SRT subtitle file. Automatic speech recognition is coming later.
+</p>
+
+<button class="mainbtn" id="create" onclick="createClips()">CREATE MY CLIP</button>
+
+<p class="note">Features: video upload, manual clipping, four video formats, burned-in captions, SRT downloads and caption styling.</p>
+</section>
+
+<section class="card">
+<h3>📁 Your workspace</h3>
+<p class="sub">Your processing results will appear here.</p>
+<div id="results"><p class="note">No clips yet. Upload a video to get started.</p></div>
+</section>
 </main>
 
 <footer>JILA CLIPS © 2026 · Create. Clip. Share.</footer>
@@ -119,165 +152,142 @@ const API="https://jila-clips.onrender.com";
 let mode="manual";
 
 function choose(value){
- mode=value;
-
- document.getElementById("auto").classList.toggle("active",value==="auto");
- document.getElementById("manual").classList.toggle("active",value==="manual");
-
- document.getElementById("manualOptions").style.display=
- value==="manual"?"block":"none";
-
- document.getElementById("modeNote").textContent=
- value==="auto"
- ?"Automatic AI highlight detection is coming soon. Choose Manual to create a clip now."
- :"Manual clipping is available.";
+mode=value;
+document.getElementById("auto").classList.toggle("active",value==="auto");
+document.getElementById("manual").classList.toggle("active",value==="manual");
+document.getElementById("manualOptions").style.display=value==="manual"?"block":"none";
+document.getElementById("modeNote").textContent=
+value==="auto"
+?"Automatic AI highlight detection is coming soon. Choose Manual to create a clip now."
+:"Manual clipping is available.";
 }
 
 function srtTime(seconds){
- const hours=Math.floor(seconds/3600);
- const minutes=Math.floor((seconds%3600)/60);
- const secs=Math.floor(seconds%60);
- const milliseconds=Math.round((seconds-Math.floor(seconds))*1000);
-
- return String(hours).padStart(2,"0")+":"+
- String(minutes).padStart(2,"0")+":"+
- String(secs).padStart(2,"0")+","+
- String(milliseconds).padStart(3,"0");
+const hours=Math.floor(seconds/3600);
+const minutes=Math.floor((seconds%3600)/60);
+const secs=Math.floor(seconds%60);
+const milliseconds=Math.round((seconds-Math.floor(seconds))*1000);
+return String(hours).padStart(2,"0")+":"+
+String(minutes).padStart(2,"0")+":"+
+String(secs).padStart(2,"0")+","+
+String(milliseconds).padStart(3,"0");
 }
 
 function createSubtitleFile(text,duration){
- const cleanText=text.trim().replace(/\r/g,"");
- const content=
- "1\n"+
- srtTime(0)+" --> "+srtTime(duration)+"\n"+
- cleanText+"\n";
-
- const blob=new Blob(
-  ["\uFEFF"+content],
-  {type:"application/x-subrip;charset=utf-8"}
- );
-
- return URL.createObjectURL(blob);
+const cleanText=text.trim().replace(/\r/g,"");
+const content="1\n"+srtTime(0)+" --> "+srtTime(duration)+"\n"+cleanText+"\n";
+const blob=new Blob(["\uFEFF"+content],{type:"application/x-subrip;charset=utf-8"});
+return URL.createObjectURL(blob);
 }
 
 async function createClips(){
- const button=document.getElementById("create");
- const file=document.getElementById("videoFile").files[0];
- const results=document.getElementById("results");
+const button=document.getElementById("create");
+const file=document.getElementById("videoFile").files[0];
+const results=document.getElementById("results");
 
- if(mode==="auto"){
-  alert("Automatic AI highlight detection is not available yet. Please choose Manual.");
-  return;
- }
+if(mode==="auto"){
+alert("Automatic AI highlight detection is not available yet. Please choose Manual.");
+return;
+}
+if(!file){
+alert("Please choose a video file to upload.");
+return;
+}
+if(!document.getElementById("rightsConfirmed").checked){
+alert("Please confirm that you own this video or have permission to edit it.");
+return;
+}
 
- if(!file){
-  alert("Please choose a video file to upload.");
-  return;
- }
+const start=Number(document.getElementById("start").value);
+const end=Number(document.getElementById("end").value);
 
- if(!document.getElementById("rightsConfirmed").checked){
-  alert("Please confirm that you own this video or have permission to edit it.");
-  return;
- }
+if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start||end-start>60){
+alert("Enter valid start and end times. Clips must be no longer than 60 seconds.");
+return;
+}
 
- const start=Number(document.getElementById("start").value);
- const end=Number(document.getElementById("end").value);
+const captionText=document.getElementById("captionText").value;
+const duration=end-start;
 
- if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end<=start||end-start>60){
-  alert("Enter valid start and end times. Clips must be no longer than 60 seconds.");
-  return;
- }
+const captionFont=document.getElementById("captionFont").value;
+const captionColor=document.getElementById("captionColor").value;
+const captionSize=document.getElementById("captionSize").value;
+const captionPosition=document.getElementById("captionPosition").value;
 
- const captionText=document.getElementById("captionText").value;
- const duration=end-start;
+button.disabled=true;
+button.textContent="UPLOADING VIDEO...";
+results.textContent="Uploading your video. Please wait...";
 
- if(captionText.trim().length>2000){
-  alert("Captions must be 2,000 characters or fewer.");
-  return;
- }
+try{
+const form=new FormData();
+form.append("video",file);
 
- button.disabled=true;
- button.textContent="UPLOADING VIDEO...";
- results.textContent="Uploading your video. Please wait...";
+const uploadResponse=await fetch(API+"/api/jobs/upload",{
+method:"POST",
+headers:{"X-Rights-Confirmed":"true"},
+body:form
+});
 
- try{
-  const form=new FormData();
-  form.append("video",file);
+const uploaded=await uploadResponse.json();
+if(!uploadResponse.ok)throw new Error(uploaded.error||"Video upload failed.");
 
-  const uploadResponse=await fetch(API+"/api/jobs/upload",{
-   method:"POST",
-   headers:{"X-Rights-Confirmed":"true"},
-   body:form
-  });
+button.textContent="PROCESSING CLIP...";
+results.textContent="Video uploaded. Creating your customized clip...";
 
-  const uploaded=await uploadResponse.json();
+const clipResponse=await fetch(
+API+"/api/jobs/"+encodeURIComponent(uploaded.id)+"/clip",
+{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+startSeconds:start,
+durationSeconds:duration,
+ratio:document.getElementById("ratio").value,
+captionText:captionText,
+captionFont:captionFont,
+captionColor:captionColor,
+captionSize:captionSize,
+captionPosition:captionPosition
+})
+}
+);
 
-  if(!uploadResponse.ok){
-   throw new Error(uploaded.error||"Video upload failed.");
-  }
+const clip=await clipResponse.json();
+if(!clipResponse.ok)throw new Error(clip.error||"Clip processing failed.");
 
-  button.textContent="PROCESSING CLIP...";
-  results.textContent="Video uploaded. Creating your clip and burning in captions...";
+const downloadURL=API+clip.download;
+let resultHTML='<div class="result"><strong>Your clip is ready!</strong>'+
+'<p class="note">Format: '+clip.format+'</p>';
 
-  const clipResponse=await fetch(
-   API+"/api/jobs/"+encodeURIComponent(uploaded.id)+"/clip",
-   {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-     startSeconds:start,
-     durationSeconds:duration,
-     ratio:document.getElementById("ratio").value,
-     captionText:captionText
-    })
-   }
-  );
+if(clip.captionsBurnedIn){
+resultHTML+='<p class="note">✅ Captions burned directly into your video!</p>';
+}else{
+resultHTML+='<p class="note">No captions were burned into this video.</p>';
+}
 
-  const clip=await clipResponse.json();
+resultHTML+='<p class="note">Font: '+captionFont+
+' · Colour: '+captionColor+' · Size: '+captionSize+
+' · Position: '+captionPosition+'</p>';
 
-  if(!clipResponse.ok){
-   throw new Error(clip.error||"Clip processing failed.");
-  }
+resultHTML+='<a href="'+downloadURL+'" target="_blank" rel="noopener">Download your video</a>';
 
-  const downloadURL=API+clip.download;
+if(captionText.trim()){
+const subtitleURL=createSubtitleFile(captionText,duration);
+resultHTML+='<br><a href="'+subtitleURL+'" download="JILA-CLIPS-Captions.srt">Download your captions (.SRT)</a>';
+}
+resultHTML+='</div>';
+results.innerHTML=resultHTML;
 
-  let resultHTML=
-   '<div class="result">'+
-   '<strong>Your clip is ready!</strong>'+
-   '<p class="note">Format: '+clip.format+'</p>';
-
-  if(clip.captionsBurnedIn){
-   resultHTML+='<p class="note">✅ Captions burned directly into your video!</p>';
-  }else{
-   resultHTML+='<p class="note">No captions were burned into this video.</p>';
-  }
-
-  resultHTML+=
-   '<a href="'+downloadURL+'" target="_blank" rel="noopener">Download your video</a>';
-
-  if(captionText.trim()){
-   const subtitleURL=createSubtitleFile(captionText,duration);
-   resultHTML+=
-    '<br><a href="'+subtitleURL+'" download="JILA-CLIPS-Captions.srt">'+
-    'Download your captions (.SRT)</a>';
-  }
-
-  resultHTML+='</div>';
-  results.innerHTML=resultHTML;
-
- }catch(error){
-  results.innerHTML=
-   '<div class="result"><strong>Could not complete the request.</strong><p class="note"></p></div>';
-  results.querySelector(".note").textContent=error.message;
-
- }finally{
-  button.disabled=false;
-  button.textContent="CREATE MY CLIP";
- }
+}catch(error){
+results.innerHTML='<div class="result"><strong>Could not complete the request.</strong><p class="note"></p></div>';
+results.querySelector(".note").textContent=error.message;
+}finally{
+button.disabled=false;
+button.textContent="CREATE MY CLIP";
+}
 }
 
 choose("manual");
 </script>
-
 </body>
 </html>
