@@ -15,23 +15,11 @@ await mkdir("uploads", { recursive: true });
 await mkdir("outputs", { recursive: true });
 
 app.use((req, res, next) => {
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://habyjila223.github.io"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, OPTIONS"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, X-Rights-Confirmed"
-  );
+  res.setHeader("Access-Control-Allow-Origin", "https://habyjila223.github.io");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Rights-Confirmed");
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-
+  if (req.method === "OPTIONS") return res.sendStatus(204);
   next();
 });
 
@@ -42,9 +30,7 @@ let isProcessing = false;
 
 const upload = multer({
   dest: "uploads/",
-  limits: {
-    fileSize: 100 * 1024 * 1024
-  },
+  limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter(req, file, cb) {
     const allowed = [
       "video/mp4",
@@ -74,11 +60,8 @@ function execute(command, args) {
     process.on("error", reject);
 
     process.on("close", code => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(errors.slice(-2000)));
-      }
+      if (code === 0) resolve();
+      else reject(new Error(errors.slice(-2000)));
     });
   });
 }
@@ -97,11 +80,38 @@ function srtTime(seconds) {
   );
 }
 
+const fontOptions = {
+  arial: "Arial",
+  dejavu: "DejaVu Sans",
+  liberation: "Liberation Sans",
+  serif: "DejaVu Serif"
+};
+
+const colorOptions = {
+  white: "&H00FFFFFF",
+  yellow: "&H0000FFFF",
+  red: "&H000000FF",
+  blue: "&H00FF0000",
+  green: "&H0000FF00"
+};
+
+const sizeOptions = {
+  small: 20,
+  medium: 28,
+  large: 38
+};
+
+const positionOptions = {
+  top: 8,
+  middle: 5,
+  bottom: 2
+};
+
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
     service: "JILA CLIPS",
-    version: "0.4.0"
+    version: "0.5.0"
   });
 });
 
@@ -193,6 +203,11 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
   const ratio = req.body.ratio || "9:16";
   const captionText = String(req.body.captionText || "").trim();
 
+  const font = fontOptions[req.body.captionFont] || fontOptions.arial;
+  const color = colorOptions[req.body.captionColor] || colorOptions.white;
+  const fontSize = sizeOptions[req.body.captionSize] || sizeOptions.medium;
+  const alignment = positionOptions[req.body.captionPosition] || positionOptions.bottom;
+
   const formats = {
     "9:16": [720, 1280],
     "16:9": [1280, 720],
@@ -246,7 +261,21 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
 
       await writeFile(captionFile, subtitleContent, "utf8");
 
-      filters.push(`subtitles=filename='${captionFile}'`);
+      const style = [
+        `FontName=${font}`,
+        `FontSize=${fontSize}`,
+        `PrimaryColour=${color}`,
+        "OutlineColour=&H00000000",
+        "BorderStyle=1",
+        "Outline=2",
+        "Shadow=1",
+        `Alignment=${alignment}`,
+        "MarginV=45"
+      ].join(",");
+
+      filters.push(
+        `subtitles=filename='${captionFile}':force_style='${style}'`
+      );
     }
 
     await execute(ffmpeg, [
@@ -274,7 +303,13 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
       status: "completed",
       download: `/api/jobs/${job.id}/download`,
       format: ratio,
-      captionsBurnedIn: Boolean(captionText)
+      captionsBurnedIn: Boolean(captionText),
+      captionStyle: {
+        font,
+        color,
+        fontSize,
+        alignment
+      }
     });
 
   } catch (error) {
@@ -283,7 +318,7 @@ app.post("/api/jobs/:id/clip", async (req, res) => {
     job.status = "failed";
 
     res.status(500).json({
-      error: "Video processing failed. Please try a smaller video or check subtitle support."
+      error: "Video processing failed. Please check subtitle support."
     });
 
   } finally {
