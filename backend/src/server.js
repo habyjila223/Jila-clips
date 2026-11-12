@@ -96,8 +96,8 @@ const colorOptions = {
 };
 
 const sizeOptions = {
-  small: 20,
-  medium: 28,
+  small: 18,
+  medium: 24,
   large: 38
 };
 
